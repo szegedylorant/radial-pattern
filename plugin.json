@@ -1,0 +1,23 @@
+{
+    "$schema": "https://go.kicad.org/api/schemas/v1",
+    "identifier": "com.example.radial-pattern",
+    "name": "Radial Pattern",
+    "description": "Generate variable-density radial patterns on a PCB",
+    "runtime": {
+        "type": "python",
+        "min_version": "3.9"
+    },
+    "actions": [
+        {
+            "identifier": "radial-pattern",
+            "name": "Radial Pattern",
+            "description": "Generate a radial pattern of PCB graphics",
+            "show-button": true,
+            "scopes": [
+                "pcb"
+            ],
+            "entrypoint": "radial_pattern_action.py"
+        }
+    ]
+}
+
