@@ -27,4 +27,5 @@ Radial pattern generator plugin for KiCad 10
 
 ## Issues
 
-* Groupping does not remain afted deselecting generated objects
+* Groupping does not remain after deselecting generated objects
+    - Workaround: after plugin finishes, Right Click --> Groupping --> Group Items

@@ -3,7 +3,7 @@ import math
 import wx
 
 from kipy import KiCad
-from kipy.board_types import BoardLayer, BoardSegment, Group
+from kipy.board_types import BoardLayer, BoardSegment, BoardArc
 from kipy.geometry import Vector2
 from kipy.util import from_mm
 
@@ -56,6 +56,10 @@ MASK_FOR_COPPER = {
     "B.Cu": "B.Mask",
 }
 
+USER_COMMENTS_LAYER = "User.Comments"
+
+CIRCLE_WIDTH_MM = 0.15
+
 
 # ============================================================
 # Geometry
@@ -70,7 +74,6 @@ def generate_radial_lines(
     line_length_end,
     density_exp,
     length_exp,
-    reverse_direction=False,
 ):
     """
     Generate radial line geometry.
@@ -83,8 +86,6 @@ def generate_radial_lines(
         return []
 
     lines = []
-
-    direction = -1 if reverse_direction else 1
 
     for i in range(n_lines):
 
@@ -103,13 +104,17 @@ def generate_radial_lines(
 
         else:
 
-            denominator = math.exp(density_exp) - 1.0
+            denominator = (
+                math.exp(density_exp) - 1.0
+            )
 
             if abs(denominator) < 1e-15:
                 t_density = t
             else:
                 t_density = (
-                    math.exp(density_exp * t) - 1.0
+                    math.exp(
+                        density_exp * t
+                    ) - 1.0
                 ) / denominator
 
         # ----------------------------------------------------
@@ -118,12 +123,12 @@ def generate_radial_lines(
 
         angle_deg = (
             start_angle
-            + direction
-            * total_angle
-            * t_density
+            + total_angle * t_density
         )
 
-        angle = math.radians(angle_deg)
+        angle = math.radians(
+            angle_deg
+        )
 
         # ----------------------------------------------------
         # Length interpolation
@@ -135,13 +140,17 @@ def generate_radial_lines(
 
         else:
 
-            denominator = math.exp(length_exp) - 1.0
+            denominator = (
+                math.exp(length_exp) - 1.0
+            )
 
             if abs(denominator) < 1e-15:
                 t_length = t
             else:
                 t_length = (
-                    math.exp(length_exp * t) - 1.0
+                    math.exp(
+                        length_exp * t
+                    ) - 1.0
                 ) / denominator
 
         length = (
@@ -188,7 +197,9 @@ def add_field(
     label,
     value,
 ):
-    row = wx.BoxSizer(wx.HORIZONTAL)
+    row = wx.BoxSizer(
+        wx.HORIZONTAL
+    )
 
     row.Add(
         wx.StaticText(
@@ -196,7 +207,8 @@ def add_field(
             label=label,
         ),
         1,
-        wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
+        wx.ALIGN_CENTER_VERTICAL
+        | wx.RIGHT,
         10,
     )
 
@@ -213,7 +225,8 @@ def add_field(
     sizer.Add(
         row,
         0,
-        wx.EXPAND | wx.BOTTOM,
+        wx.EXPAND
+        | wx.BOTTOM,
         6,
     )
 
@@ -234,10 +247,12 @@ class RadialPatternDialog(wx.Dialog):
         )
 
         self.SetMinSize(
-            wx.Size(540, 800)
+            wx.Size(540, 760)
         )
 
-        outer = wx.BoxSizer(wx.VERTICAL)
+        outer = wx.BoxSizer(
+            wx.VERTICAL
+        )
 
         # ====================================================
         # Scrollable content
@@ -284,9 +299,13 @@ class RadialPatternDialog(wx.Dialog):
         )
 
         if use_selected:
-            self.center_selected.SetValue(True)
+            self.center_selected.SetValue(
+                True
+            )
         else:
-            self.center_coordinates.SetValue(True)
+            self.center_coordinates.SetValue(
+                True
+            )
 
         center_box.Add(
             self.center_selected,
@@ -302,7 +321,9 @@ class RadialPatternDialog(wx.Dialog):
             5,
         )
 
-        xy_row = wx.BoxSizer(wx.HORIZONTAL)
+        xy_row = wx.BoxSizer(
+            wx.HORIZONTAL
+        )
 
         xy_row.Add(
             wx.StaticText(
@@ -310,7 +331,8 @@ class RadialPatternDialog(wx.Dialog):
                 label="X (mm):",
             ),
             0,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
+            wx.ALIGN_CENTER_VERTICAL
+            | wx.RIGHT,
             5,
         )
 
@@ -335,7 +357,8 @@ class RadialPatternDialog(wx.Dialog):
                 label="Y (mm):",
             ),
             0,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
+            wx.ALIGN_CENTER_VERTICAL
+            | wx.RIGHT,
             5,
         )
 
@@ -355,14 +378,16 @@ class RadialPatternDialog(wx.Dialog):
         center_box.Add(
             xy_row,
             0,
-            wx.EXPAND | wx.ALL,
+            wx.EXPAND
+            | wx.ALL,
             5,
         )
 
         content.Add(
             center_box,
             0,
-            wx.EXPAND | wx.ALL,
+            wx.EXPAND
+            | wx.ALL,
             10,
         )
 
@@ -382,7 +407,7 @@ class RadialPatternDialog(wx.Dialog):
             "Inner radius (mm):",
             config_get(
                 "radius",
-                3.7,
+                3.6,
             ),
         )
 
@@ -402,27 +427,8 @@ class RadialPatternDialog(wx.Dialog):
             "Total angle (deg):",
             config_get(
                 "total_angle",
-                285,
+                300,
             ),
-        )
-
-        self.reverse_direction = wx.CheckBox(
-            scrolled,
-            label="Reverse angular direction",
-        )
-
-        self.reverse_direction.SetValue(
-            config_get_bool(
-                "reverse_direction",
-                False,
-            )
-        )
-
-        geometry_box.Add(
-            self.reverse_direction,
-            0,
-            wx.TOP | wx.BOTTOM,
-            4,
         )
 
         self.n_lines = add_field(
@@ -525,7 +531,9 @@ class RadialPatternDialog(wx.Dialog):
                 saved_layer
             )
         else:
-            self.output_layer.SetSelection(0)
+            self.output_layer.SetSelection(
+                0
+            )
 
         layer_row.Add(
             self.output_layer,
@@ -535,7 +543,8 @@ class RadialPatternDialog(wx.Dialog):
         output_box.Add(
             layer_row,
             0,
-            wx.EXPAND | wx.BOTTOM,
+            wx.EXPAND
+            | wx.BOTTOM,
             6,
         )
 
@@ -622,7 +631,8 @@ class RadialPatternDialog(wx.Dialog):
         mask_box.Add(
             mask_layer_row,
             0,
-            wx.EXPAND | wx.BOTTOM,
+            wx.EXPAND
+            | wx.BOTTOM,
             6,
         )
 
@@ -639,11 +649,10 @@ class RadialPatternDialog(wx.Dialog):
         output_box.Add(
             mask_box,
             0,
-            wx.EXPAND | wx.TOP,
+            wx.EXPAND
+            | wx.TOP,
             8,
         )
-
-        self.mask_box = mask_box
 
         content.Add(
             output_box,
@@ -656,7 +665,7 @@ class RadialPatternDialog(wx.Dialog):
         )
 
         # ====================================================
-        # Pattern name
+        # Pattern options
         # ====================================================
 
         options_box = wx.StaticBoxSizer(
@@ -703,7 +712,9 @@ class RadialPatternDialog(wx.Dialog):
         # Buttons
         # ====================================================
 
-        button_sizer = wx.StdDialogButtonSizer()
+        button_sizer = (
+            wx.StdDialogButtonSizer()
+        )
 
         self.generate_button = wx.Button(
             self,
@@ -730,7 +741,8 @@ class RadialPatternDialog(wx.Dialog):
         outer.Add(
             button_sizer,
             0,
-            wx.EXPAND | wx.ALL,
+            wx.EXPAND
+            | wx.ALL,
             10,
         )
 
@@ -757,7 +769,7 @@ class RadialPatternDialog(wx.Dialog):
         self.generate_button.SetDefault()
 
         self.SetSize(
-            wx.Size(540, 800)
+            wx.Size(540, 760)
         )
 
         self.Centre()
@@ -766,17 +778,15 @@ class RadialPatternDialog(wx.Dialog):
     # Layer changed
     # ========================================================
 
-    def on_layer_changed(self, event):
+    def on_layer_changed(
+        self,
+        event,
+    ):
 
         layer = (
             self.output_layer
             .GetStringSelection()
         )
-
-        # ----------------------------------------------------
-        # Copper selected:
-        # automatically select corresponding mask.
-        # ----------------------------------------------------
 
         if layer == "F.Cu":
 
@@ -790,29 +800,30 @@ class RadialPatternDialog(wx.Dialog):
                 "B.Mask"
             )
 
-        # ----------------------------------------------------
-        # Enable/disable mask controls.
-        # ----------------------------------------------------
+        self.update_layer_controls()
+
+        event.Skip()
+
+    # ========================================================
+    # Mask checkbox
+    # ========================================================
+
+    def on_mask_changed(
+        self,
+        event,
+    ):
 
         self.update_layer_controls()
 
         event.Skip()
 
     # ========================================================
-    # Mask checkbox changed
+    # Layer controls
     # ========================================================
 
-    def on_mask_changed(self, event):
-
-        self.update_layer_controls()
-
-        event.Skip()
-
-    # ========================================================
-    # Update layer controls
-    # ========================================================
-
-    def update_layer_controls(self):
+    def update_layer_controls(
+        self
+    ):
 
         layer = (
             self.output_layer
@@ -840,17 +851,14 @@ class RadialPatternDialog(wx.Dialog):
             mask_enabled
         )
 
-        # ----------------------------------------------------
-        # Non-copper primary layers cannot have an additional
-        # mask.
-        # ----------------------------------------------------
-
         if not is_copper:
 
-            self.add_mask.SetValue(False)
+            self.add_mask.SetValue(
+                False
+            )
 
     # ========================================================
-    # Get values
+    # Values
     # ========================================================
 
     def get_values(self):
@@ -870,9 +878,6 @@ class RadialPatternDialog(wx.Dialog):
                 float(
                     self.total_angle.GetValue()
                 ),
-
-            "reverse_direction":
-                self.reverse_direction.GetValue(),
 
             "n_lines":
                 int(
@@ -921,8 +926,7 @@ class RadialPatternDialog(wx.Dialog):
                 ),
 
             "pattern_name":
-                self.pattern_name
-                .GetValue(),
+                self.pattern_name.GetValue(),
 
             "use_selected":
                 self.center_selected
@@ -987,11 +991,6 @@ class RadialPatternDialog(wx.Dialog):
             values["length_exp"],
         )
 
-        config_set_bool(
-            "reverse_direction",
-            values["reverse_direction"],
-        )
-
         config_set(
             "output_layer",
             values["output_layer"],
@@ -1053,7 +1052,7 @@ class RadialPatternPlugin:
         )
 
     # ========================================================
-    # Get board
+    # Board
     # ========================================================
 
     def get_board(self):
@@ -1069,7 +1068,7 @@ class RadialPatternPlugin:
         return board
 
     # ========================================================
-    # Get pattern center
+    # Center
     # ========================================================
 
     def get_center(
@@ -1112,10 +1111,6 @@ class RadialPatternPlugin:
 
         item = selection[0]
 
-        # ----------------------------------------------------
-        # Most board objects expose position.
-        # ----------------------------------------------------
-
         position = getattr(
             item,
             "position",
@@ -1123,12 +1118,7 @@ class RadialPatternPlugin:
         )
 
         if position is not None:
-
             return position
-
-        # ----------------------------------------------------
-        # Some objects expose center.
-        # ----------------------------------------------------
 
         center = getattr(
             item,
@@ -1137,14 +1127,7 @@ class RadialPatternPlugin:
         )
 
         if center is not None:
-
             return center
-
-        # ----------------------------------------------------
-        # Bounding-box fallback.
-        #
-        # Do not use Box2.top_left.
-        # ----------------------------------------------------
 
         try:
 
@@ -1198,7 +1181,34 @@ class RadialPatternPlugin:
         )
 
     # ========================================================
-    # Make segment
+    # Resolve layer
+    # ========================================================
+
+    @staticmethod
+    def resolve_layer(
+        board,
+        layer_name,
+    ):
+
+        layer = (
+            board.get_layer_by_name(
+                layer_name
+            )
+        )
+
+        if (
+            layer == BoardLayer.BL_UNDEFINED
+        ):
+
+            raise RuntimeError(
+                "Could not resolve PCB layer "
+                f"'{layer_name}'."
+            )
+
+        return layer
+
+    # ========================================================
+    # Segment
     # ========================================================
 
     @staticmethod
@@ -1233,31 +1243,55 @@ class RadialPatternPlugin:
         return segment
 
     # ========================================================
-    # Resolve layer
+    # Circle
     # ========================================================
 
     @staticmethod
-    def resolve_layer(
-        board,
-        layer_name,
+    def make_circle(
+        center,
+        radius_mm,
+        layer,
     ):
+        """
+        Create a full circle on User.Comments.
 
-        layer = (
-            board.get_layer_by_name(
-                layer_name
-            )
+        The circle is represented as a BoardArc.
+        """
+
+        circle = BoardArc()
+
+        radius = from_mm(
+            radius_mm
         )
 
-        if (
-            layer == BoardLayer.BL_UNDEFINED
-        ):
+        center_point = Vector2.from_xy(
+            center.x,
+            center.y,
+        )
 
-            raise RuntimeError(
-                "Could not resolve PCB layer "
-                f"'{layer_name}'."
-            )
+        start_point = Vector2.from_xy(
+            center.x + radius,
+            center.y,
+        )
 
-        return layer
+        circle.center = center_point
+
+        circle.start = start_point
+
+        circle.mid = Vector2.from_xy(
+            center.x - radius,
+            center.y,
+        )
+
+        circle.end = start_point
+
+        circle.layer = layer
+
+        circle.attributes.stroke.width = (
+            from_mm(CIRCLE_WIDTH_MM)
+        )
+
+        return circle
 
     # ========================================================
     # Create pattern
@@ -1280,12 +1314,13 @@ class RadialPatternPlugin:
         )
 
         # ----------------------------------------------------
-        # Only copper may have an additional mask.
+        # Optional mask
         # ----------------------------------------------------
 
         add_mask = (
             values["add_mask"]
-            and output_layer_name in COPPER_LAYERS
+            and output_layer_name
+            in COPPER_LAYERS
         )
 
         mask_layer = None
@@ -1296,29 +1331,43 @@ class RadialPatternPlugin:
                 values["mask_layer"]
             )
 
-            # Make sure the selected mask corresponds
-            # to the copper side.
             expected_mask = (
                 MASK_FOR_COPPER[
                     output_layer_name
                 ]
             )
 
-            if mask_layer_name != expected_mask:
+            if (
+                mask_layer_name
+                != expected_mask
+            ):
 
                 raise RuntimeError(
                     f"{output_layer_name} requires "
-                    f"{expected_mask} as its corresponding "
-                    "mask layer."
+                    f"{expected_mask} as its "
+                    "additional mask layer."
                 )
 
-            mask_layer = self.resolve_layer(
-                board,
-                mask_layer_name,
+            mask_layer = (
+                self.resolve_layer(
+                    board,
+                    mask_layer_name,
+                )
             )
 
         # ----------------------------------------------------
-        # Generate geometry.
+        # User.Comments layer
+        # ----------------------------------------------------
+
+        comments_layer = (
+            self.resolve_layer(
+                board,
+                USER_COMMENTS_LAYER,
+            )
+        )
+
+        # ----------------------------------------------------
+        # Generate radial lines
         # ----------------------------------------------------
 
         lines = generate_radial_lines(
@@ -1334,8 +1383,6 @@ class RadialPatternPlugin:
                 values["density_exp"],
             length_exp=
                 values["length_exp"],
-            reverse_direction=
-                values["reverse_direction"],
         )
 
         if not lines:
@@ -1346,9 +1393,9 @@ class RadialPatternPlugin:
 
         items = []
 
-        # ====================================================
+        # ----------------------------------------------------
         # Primary layer
-        # ====================================================
+        # ----------------------------------------------------
 
         for (
             x1,
@@ -1369,9 +1416,9 @@ class RadialPatternPlugin:
                 )
             )
 
-        # ====================================================
+        # ----------------------------------------------------
         # Optional mask
-        # ====================================================
+        # ----------------------------------------------------
 
         if mask_layer is not None:
 
@@ -1394,9 +1441,39 @@ class RadialPatternPlugin:
                     )
                 )
 
-        # ====================================================
+        # ----------------------------------------------------
+        # Reference circle
+        #
+        # radius =
+        # inner radius
+        # + longest line length
+        # + 1 mm
+        # ----------------------------------------------------
+
+        longest_line = max(
+            values["line_length_start"],
+            values["line_length_end"],
+        )
+
+        circle_radius = (
+            values["radius"]
+            + longest_line
+            + 1.0
+        )
+
+        circle = self.make_circle(
+            center,
+            circle_radius,
+            comments_layer,
+        )
+
+        items.append(
+            circle
+        )
+
+        # ----------------------------------------------------
         # Create board objects
-        # ====================================================
+        # ----------------------------------------------------
 
         commit = board.begin_commit()
 
@@ -1415,43 +1492,12 @@ class RadialPatternPlugin:
                     "radial-pattern items."
                 )
 
-            # ------------------------------------------------
-            # Create group.
-            #
-            # Group.name has no setter in the Python wrapper.
-            # Set the protobuf field instead.
-            # ------------------------------------------------
-
-            group = Group()
-
-            group.proto.name = (
-                values["pattern_name"]
-            )
-
-            group.items = created_items
-
-            created_groups = (
-                board.create_items(
-                    group
-                )
-            )
-
-            if not created_groups:
-
-                raise RuntimeError(
-                    "KiCad did not create the "
-                    "radial-pattern group."
-                )
-
             board.push_commit(
                 commit,
                 "Create radial pattern",
             )
 
-            return (
-                created_items,
-                created_groups[0],
-            )
+            return created_items
 
         except Exception:
 
@@ -1467,10 +1513,6 @@ class RadialPatternPlugin:
 
     def run(self):
 
-        # ----------------------------------------------------
-        # Get board
-        # ----------------------------------------------------
-
         try:
 
             board = self.get_board()
@@ -1484,10 +1526,6 @@ class RadialPatternPlugin:
             )
 
             return
-
-        # ----------------------------------------------------
-        # Dialog
-        # ----------------------------------------------------
 
         dialog = RadialPatternDialog(
             None
@@ -1640,18 +1678,17 @@ class RadialPatternPlugin:
             return
 
         # ====================================================
-        # Generate
+        # Create
         # ====================================================
 
         try:
 
-            (
-                created_items,
-                created_group,
-            ) = self.create_pattern(
-                board,
-                center,
-                values,
+            created_items = (
+                self.create_pattern(
+                    board,
+                    center,
+                    values,
+                )
             )
 
         except Exception as exc:
@@ -1666,7 +1703,7 @@ class RadialPatternPlugin:
             return
 
         # ====================================================
-        # Select generated objects
+        # Select all generated objects
         # ====================================================
 
         try:
@@ -1678,17 +1715,33 @@ class RadialPatternPlugin:
             )
 
         except Exception:
+
             pass
 
         # ====================================================
-        # Success
+        # Success information
         # ====================================================
+
+        longest_line = max(
+            values["line_length_start"],
+            values["line_length_end"],
+        )
+
+        circle_radius = (
+            values["radius"]
+            + longest_line
+            + 1.0
+        )
 
         output_text = (
             f"Layer: "
             f"{values['output_layer']}"
-            f"\nWidth: "
+            f"\nLine width: "
             f"{values['output_width']:.3f} mm"
+            f"\nReference circle: "
+            f"{circle_radius:.3f} mm"
+            f"\nReference layer: "
+            f"{USER_COMMENTS_LAYER}"
         )
 
         if (
@@ -1704,19 +1757,9 @@ class RadialPatternPlugin:
                 f"{values['mask_width']:.3f} mm"
             )
 
-        direction_text = (
-            "Reverse"
-            if values["reverse_direction"]
-            else "Normal"
-        )
-
         wx.MessageBox(
             "Radial pattern created.\n\n"
-            + output_text
-            + "\nDirection: "
-            + direction_text
-            + "\nGroup: "
-            + values["pattern_name"],
+            + output_text,
             PLUGIN_NAME,
             wx.OK | wx.ICON_INFORMATION,
         )
@@ -1733,6 +1776,7 @@ if __name__ == "__main__":
     try:
 
         plugin = RadialPatternPlugin()
+
         plugin.run()
 
     except Exception as exc:
