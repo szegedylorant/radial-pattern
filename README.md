@@ -5,9 +5,13 @@ Radial pattern generator plugin for KiCad 10
 
 * Select a shape, e.g. a hole for a potentiometer
 
-* Click on plugin icon
+* Click on plugin icon ![star shaped icon with dot inside](icon.png)
 
 * Set parameters and generate pattern
+
+## Example
+
+![radial pattern of decreasing length lines with increasing density](example.png)
 
 ## Installation
 
