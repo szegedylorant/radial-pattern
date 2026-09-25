@@ -1,22 +1,45 @@
 {
     "$schema": "https://go.kicad.org/api/schemas/v1",
-    "identifier": "com.example.radial-pattern",
+
+    "identifier": "com.radial-pattern.kicad",
+
     "name": "Radial Pattern",
-    "description": "Generate variable-density radial patterns on a PCB",
+
+    "description": "Generate configurable radial patterns on copper, solder mask, and silkscreen layers.",
+
+    "version": "1.0.0",
+
+    "kicad_version": "10.0",
+
+    "status": "stable",
+
     "runtime": {
-        "type": "python",
-        "min_version": "3.9"
+        "type": "python"
     },
+
     "actions": [
         {
             "identifier": "radial-pattern",
+
             "name": "Radial Pattern",
-            "description": "Generate a radial pattern of PCB graphics",
+
+            "description": "Generate a radial PCB pattern.",
+
             "show-button": true,
+
             "scopes": [
                 "pcb"
             ],
-            "entrypoint": "radial_pattern_action.py"
+
+            "entrypoint": "radial_pattern_action.py",
+
+            "icons-light": [
+                "icon.png"
+            ],
+
+            "icons-dark": [
+                "icon.png"
+            ]
         }
     ]
 }
